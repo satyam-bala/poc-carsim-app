@@ -1,0 +1,60 @@
+name: Build Image and Push to Private Repo Job
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  accountId: 444444
+  assetName: poc-carsim
+  version: 0.0.1
+  imageName: sbala/poc-carsim
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Checkout SDV-Kuksa/LEDA Car Simulator 
+      uses: actions/checkout@v4
+      with:
+        repository: eclipse-leda/leda-example-applications
+        ref: v0.0.2
+       
+    - name: Create Asset in SW Repo
+      id: sw-repo-create-asset
+      uses: fjogeleit/http-request-action@v1
+      with:
+        url: 'https://sw-repo-poc.azurewebsites.net/api/assets'
+        method: 'POST'
+        data: '{"accountId": "${{env.accountId}}", "name": "${{env.assetName}}"}'
+
+    - name: Create Version in SW Repo
+      id: sw-repo-create-version
+      uses: fjogeleit/http-request-action@v1
+      with:
+        url: 'https://sw-repo-poc.azurewebsites.net/api/versions'
+        method: 'POST'
+        data: '{"assetId": "${{ fromJson(steps.sw-repo-create-asset.outputs.response).id }}", "name": "${{env.version}}"}'
+    
+    - name: Create FileInfo in SW Repo
+      id: sw-repo-create-fileinfo
+      uses: fjogeleit/http-request-action@v1
+      with:
+        url: 'https://sw-repo-poc.azurewebsites.net/api/fileinfos'
+        method: 'POST'
+        data: '{"assetId": "${{ fromJson(steps.sw-repo-create-asset.outputs.response).id }}", "versionId": "${{ fromJson(steps.sw-repo-create-version.outputs.response).id }}", "name": "${{env.imageName}}", "repo": "${{secrets.DOCKER_REPO}}", "tags": [ "${{env.version}}" ] }'
+      
+    - name: Build and Push the Docker image to Azure Registry
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        directory: ./kuksa-carsim/carsim
+        dockerfile: ./kuksa-carsim/carsim/Dockerfile
+        image: ${{env.imageName}}
+        tags: ${{env.version}}
+        registry: ${{secrets.DOCKER_REPO}}
+        username: ${{secrets.AZRDOCKER_USERNAME}}
+        password: ${{secrets.AZRDOCKER_PASSWORD}}
