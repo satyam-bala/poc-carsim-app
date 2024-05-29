@@ -22,7 +22,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: eclipse-leda/leda-example-applications
-        ref: v0.0.2
        
     - name: Create Asset in SW Repo
       id: sw-repo-create-asset
