@@ -45,7 +45,7 @@ jobs:
       with:
         url: 'https://sw-repo-poc.azurewebsites.net/api/fileinfos'
         method: 'POST'
-        data: '{"assetId": "${{ fromJson(steps.sw-repo-create-asset.outputs.response).id }}", "versionId": "${{ fromJson(steps.sw-repo-create-version.outputs.response).id }}", "name": "${{env.imageName}}", "repo": "${{secrets.DOCKER_REPO}}", "tags": [ "${{env.version}}" ] }'
+        data: '{"assetId": "${{ fromJson(steps.sw-repo-create-asset.outputs.response).id }}", "versionId": "${{ fromJson(steps.sw-repo-create-version.outputs.response).id }}", "name": "${{env.imageName}}", "type":"container", "repo": "${{secrets.DOCKER_REPO}}", "clients":["docker", "podman"], "tags": [ "${{env.version}}" ] }'
       
     - name: Build and Push the Docker image to Azure Registry
       uses: mr-smithers-excellent/docker-build-push@v6
