@@ -9,7 +9,7 @@ on:
 env:
   accountId: 444444
   assetName: poc-carsim
-  version: 0.0.3
+  version: 0.0.4
   imageName: sbala/poc-carsim
 
 jobs:
